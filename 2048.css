@@ -1,0 +1,86 @@
+body
+{
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
+hr{
+    width: 500px;
+}
+#board{
+    width: 400px;
+    height: 400px;
+
+    background-color: #ecbd8f;
+    border: 6px solid #e89e59;
+
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+
+}
+.tile{
+    width: 90px;
+    height: 90px;
+    border: 5px solid #e89e59;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 40px;
+    font-weight: bold;
+
+}
+/* colour tiles */
+.x2{
+    background-color: aqua;
+    color: rgb(68, 61, 61);
+}
+.x4{
+    background-color: rgb(106, 95, 149);
+    color: rgb(243, 23, 23);
+
+}
+.x8{
+    background-color: rgb(35, 242, 4);
+    color: rgb(83, 73, 97);
+}
+.x16{
+    background-color: rgb(244, 13, 248);
+    color: rgb(183, 21, 21);
+}
+.x32{
+    background-color: rgb(14, 77, 236);
+    color: rgb(187, 74, 74);
+}
+.x64{
+    background-color: rgb(33, 241, 10);
+    color: rgb(86, 7, 7);
+}
+.x128{
+    background-color: rgb(237, 72, 21);
+    color: rgb(68, 61, 61);
+}
+.x256{
+    background-color: rgb(227, 155, 12);
+    color: rgb(168, 110, 110);
+}
+.x512{
+    background-color: rgb(71, 62, 138);
+    color: rgb(242, 229, 229);
+}
+.x1024{
+    background-color: rgb(43, 106, 120);
+    color: rgb(51, 13, 89);
+}
+.x2048{
+    background-color: rgb(105, 172, 29);
+    color: rgb(61, 28, 51);
+}
+.x4096{
+    background-color: rgb(238, 17, 69);
+    color: rgb(26, 178, 33);
+}
+.x8192{
+    background-color: rgb(180, 196, 11);
+    color: rgb(178, 29, 113);
+}
