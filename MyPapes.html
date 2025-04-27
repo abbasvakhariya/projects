@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veggie Recipe Finder</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --primary-light: #8BC34A;
+            --primary-dark: #2E7D32;
+            --accent-color: #FF5722;
+            --text-color: #333;
+            --light-bg: #f9f9f9;
+            --white: #ffffff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --radius: 8px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: var(--white);
+            text-align: center;
+            padding: 2rem 1rem;
+            box-shadow: var(--shadow);
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo-icon {
+            margin-right: 0.5rem;
+            font-size: 2rem;
+        }
+        
+        .tagline {
+            font-style: italic;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .search-section {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        h2 {
+            color: var(--primary-dark);
+            margin-bottom: 1.5rem;
+        }
+        
+        .vegetable-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .vegetable-card {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            padding: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+            border: 2px solid transparent;
+        }
+        
+        .vegetable-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .vegetable-card.selected {
+            border-color: var(--primary-color);
+            background-color: rgba(76, 175, 80, 0.1);
+        }
+        
+        .vegetable-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 0.5rem;
+        }
+        
+        .vegetable-name {
+            font-weight: 500;
+        }
+        
+        .search-box {
+            margin-top: 1.5rem;
+            position: relative;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 0.8rem 1rem 0.8rem 2.5rem;
+            border: 1px solid #ddd;
+            border-radius: 50px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .search-input:focus {
+            border-color: var(--primary-color);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+        }
+        
+        .recipes-section {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+        }
+        
+        .no-selection {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #777;
+        }
+        
+        .recipes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .recipe-card {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        
+        .recipe-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .recipe-image {
+            height: 200px;
+            background-color: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .recipe-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .recipe-content {
+            padding: 1.5rem;
+        }
+        
+        .recipe-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary-dark);
+        }
+        
+        .recipe-info {
+            display: flex;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #777;
+        }
+        
+        .recipe-time, .recipe-difficulty {
+            display: flex;
+            align-items: center;
+            margin-right: 1rem;
+        }
+        
+        .recipe-time i, .recipe-difficulty i {
+            margin-right: 0.3rem;
+        }
+        
+        .recipe-description {
+            margin-bottom: 1rem;
+            color: #555;
+            font-size: 0.95rem;
+        }
+        
+        .recipe-ingredients {
+            margin-bottom: 1rem;
+        }
+        
+        .ingredients-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-dark);
+        }
+        
+        .ingredients-list {
+            list-style-type: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .ingredient-tag {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: var(--primary-dark);
+            border-radius: 50px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.85rem;
+        }
+        
+        .recipe-button {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .recipe-button:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        footer {
+            background-color: var(--primary-dark);
+            color: rgba(255, 255, 255, 0.8);
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        
+        .footer-links {
+            margin: 1rem 0;
+        }
+        
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            margin: 0 0.5rem;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+        }
+        
+        .copyright {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        @media (max-width: 768px) {
+            .recipes-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .vegetable-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            }
+            
+            .vegetable-image {
+                width: 60px;
+                height: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <span class="logo-icon">🥗</span> Veggie Recipe Finder
+        </div>
+        <p class="tagline">Find delicious recipes for any vegetable</p>
+    </header>
+    
+    <div class="container">
+        <section class="search-section">
+            <h2>Select a Vegetable</h2>
+            <div class="vegetable-grid" id="vegetable-grid">
+                <!-- Vegetable cards will be added here via JavaScript -->
+            </div>
+            
+            <div class="search-box">
+                <i class="search-icon">🔍</i>
+                <input type="text" class="search-input" id="search-input" placeholder="Search for a vegetable...">
+            </div>
+        </section>
+        
+        <section class="recipes-section" id="recipes-section">
+            <div class="no-selection" id="no-selection">
+                <h3>Select a vegetable to see recipes</h3>
+                <p>Browse our collection of delicious recipes by choosing a vegetable above</p>
+            </div>
+            
+            <div class="recipes-grid" id="recipes-grid" style="display: none;">
+                <!-- Recipe cards will be added here via JavaScript -->
+            </div>
+        </section>
+    </div>
+    
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">🥗 Veggie Recipe Finder</div>
+            <p>Discover the perfect recipe for any vegetable in your kitchen</p>
+            <div class="footer-links">
+                <a href="#">Home</a>
+                <a href="#">About</a>
+                <a href="#">Contact</a>
+                <a href="#">Privacy Policy</a>
+            </div>
+            <p class="copyright">© 2025 Veggie Recipe Finder. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Vegetable data with images
+        const vegetables = [
+            { id: 'tomato', name: 'Tomato', image: "https://m.economictimes.com/thumb/msid-95423731,width-1200,height-900,resizemode-4,imgsize-56196/tomatoes-canva.jpg" },
+            { id: 'carrot', name: 'Carrot', image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvU4R9v1tUgbIY5TMVfqp8S6i0U5rNyl1G2lEW9nXmYjbDBn-w5Q&s=10&ec=72940544"},
+            { id: 'broccoli', name: 'Broccoli', image: "https://www.healthyfood.com/wp-content/uploads/2017/03/What_to_do_with_broccoli-1-1024x768.jpg" },
+            { id: 'potato', name: 'Potato', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTkUc2Fbldzj2JlQpXHHWp64bZlhzPN_fT1mWjMIYqEywZNEd4luA&s=10&ec=72940544' },
+            { id: 'cucumber', name: 'Cucumber', image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFgdvrfprLjWNvsEBNQCgvciaibalWarva_G_39rBKFg&s&ec=72940544" },
+            { id: 'eggplant', name: 'Eggplant', image: "https://www.veggycation.com.au/siteassets/veggycationvegetable/eggplant.jpg" },
+            { id: 'corn', name: 'Corn', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjjlMZKE-kT2T6qmu9vWxmLmk26EeODvQ2TxnCqGmZ0UjKl854HA&s=10&ec=72940544' },
+            { id: 'bellpepper', name: 'Bell Pepper', image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQz4wlq4FQcJ1Nmu_KKD-pfeE2ZOwqaZGc2hUzyL_eAj2QoOpkOGw&s=10&ec=72940544" },
+            { id: 'lettuce', name: 'Lettuce', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6R4Uk2O3LaaW3hUegCK_7n3XLQQBvqYEbteDvuHaGEVuZz8Qigw&s=10&ec=72940544' },
+            { id: 'onion', name: 'Onion', image: 'https://5.imimg.com/data5/SELLER/Default/2022/4/VP/VE/EO/18118948/60mm-red-onion.jpg' },
+            { id: 'garlic', name: 'Garlic', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLXH74uUnRJ2fPgFmZemlc6Ys63BqxZ3nx7A5QblBqwzJtAbRowg&s=10&ec=72940544' },
+            { id: 'mushroom', name: 'Mushroom', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-WKqIqfT4ufkdP0lXj7V2l4Yxnvn3MxNngIO2fk3tKTiQ5IQDFA&s=10&ec=72940544' },
+            { id: 'avocado', name: 'Avocado', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTcs2WrtQ-D2MS8xpmBWgjsMbf3wjDvoRvDtFCmrhxwcnAbYwrUoQ&s&ec=72940544' },
+            { id: 'spinach', name: 'Spinach', image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv_xXQlAxAEgJEHDDlFmY-xw4_ZYYxOommRr6wackvXdweKFBr8w&s=10&ec=72940544"},
+            { id: 'sweetpotato', name: 'Sweet Potato', image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS8ElDBqIbX_Mi4vbRCzBulob2Lk7Ujumeoa2gFt9-XMgzFl6Akhg&s=10&ec=72940544" },
+            { id: 'zucchini', name: 'Zucchini', image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSX36db8jb0lijb20bNklHHz4xfHNKce5ZnA3ZYrqyf2okXwOzz-A&s=10&ec=72940544"}
+        ];
+
+        // Recipe data with images
+        const recipes = [
+            // Tomato recipes
+            {
+                id: 1, 
+                vegetable: 'tomato',
+                title: 'Fresh Tomato Pasta',
+                time: '30 min',
+                difficulty: 'Easy',
+                description: 'A light and fresh pasta dish highlighting the natural sweetness of ripe tomatoes.',
+                ingredients: ['Tomatoes', 'Pasta', 'Garlic', 'Basil', 'Olive oil', 'Parmesan'],
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-cxsG00BggB3mJU54Lrxz8IbN7xyZLlbvbQxgqCTRRuXBvDHSNg&s=10&ec=72940544'
+
+            },
+            {
+                id: 2, 
+                vegetable: 'tomato',
+                title: 'Homemade Tomato Soup',
+                time: '45 min',
+                difficulty: 'Medium',
+                description: 'Comforting and rich tomato soup made from scratch with fresh ingredients.',
+                ingredients: ['Tomatoes', 'Onion', 'Garlic', 'Vegetable broth', 'Cream', 'Basil'],
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQSc7THwpMsJOukEvjibwGIXoAnmgH_mtec6OnwvgfGZqRcoznb9g&s=10&ec=72940544'
+
+            },
+            {
+                id: 3, 
+                vegetable: 'tomato',
+                title: 'Bruschetta',
+                time: '15 min',
+                difficulty: 'Easy',
+                description: 'Classic Italian appetizer with diced tomatoes, fresh basil, and garlic on toasted bread.',
+                ingredients: ['Tomatoes', 'Baguette', 'Garlic', 'Basil', 'Olive oil', 'Balsamic glaze'],
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ2hPilp8mHlpa4L-bX6wfZC0LLvPeW6VT1dUS1WNd3pE-bgWSDPQ&s=10&ec=72940544'
+
+            },
+            
+            // Carrot recipes
+            {
+                id: 4, 
+                vegetable: 'carrot',
+                title: 'Honey Glazed Carrots',
+                time: '20 min',
+                difficulty: 'Easy',
+                description: 'Sweet and tender carrots glazed with honey and butter, perfect as a side dish.',
+                ingredients: ['Carrots', 'Honey', 'Butter', 'Thyme', 'Salt', 'Pepper'],
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJblrS7d8f2dO_UwK-h-eRNFan1fiG-uCHicPHdodQc6Als6jQEQ&s=10&ec=72940544'
+                
+            },
+            {
+                id: 5, 
+                vegetable: 'carrot',
+                title: 'Carrot Ginger Soup',
+                time: '40 min',
+                difficulty: 'Medium',
+                description: 'Smooth and warming soup with the perfect balance of carrots and ginger.',
+                ingredients: ['Carrots', 'Ginger', 'Onion', 'Vegetable broth', 'Coconut milk', 'Coriander'],
+                image: 'https://theclevermeal.com/wp-content/uploads/2021/03/carrot-ginger-soup-022.jpg'
+
+            },
+            {
+                id: 6, 
+                vegetable: 'carrot',
+                title: 'Carrot Cake',
+                time: '1 hour',
+                difficulty: 'Hard',
+                description: 'Moist and flavorful carrot cake with cream cheese frosting - a perfect dessert.',
+                ingredients: ['Carrots', 'Flour', 'Eggs', 'Sugar', 'Cream cheese', 'Walnuts'],
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSE5IBztQQ0ysE4rBrZFhD42FOjbFcRLsclfgPQLQZySh19_UVWSA&s=10&ec=72940544'
+                
+            },
+            
+            // Broccoli recipes
+            {
+                id: 7, 
+                vegetable: 'broccoli',
+                title: 'Roasted Broccoli with Garlic',
+                time: '25 min',
+                difficulty: 'Easy',
+                description: 'Crispy roasted broccoli with garlic and lemon - a simple but delicious side dish.',
+                ingredients: ['Broccoli', 'Garlic', 'Olive oil', 'Lemon', 'Red pepper flakes', 'Parmesan'],
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmSZtG7KMqQszr5jw10Br8LZtyPWHzSIjpRNj9I52PF4mp9Kgb1g&s=10&ec=72940544'
+
+            },
+            {
+                id: 8, 
+                vegetable: 'broccoli',
+                title: 'Broccoli Cheddar Soup',
+                time: '35 min',
+                difficulty: 'Medium',
+                description: 'Creamy, cheesy soup with tender broccoli florets - the ultimate comfort food.',
+                ingredients: ['Broccoli', 'Cheddar cheese', 'Onion', 'Chicken broth', 'Cream', 'Flour'],
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ2A5BtIY3V7dHBQT2fp9mRX0-SAbdH9twFJkX24EZVH4-lJlEdJw&s=10&ec=72940544'
+
+            },
+            {
+                id: 9, 
+                vegetable: 'broccoli',
+                title: 'Broccoli Stir Fry',
+                time: '20 min',
+                difficulty: 'Medium',
+                description: 'Quick stir-fried broccoli with Asian-inspired flavors, perfect over rice.',
+                ingredients: ['Broccoli', 'Garlic', 'Ginger', 'Soy sauce', 'Sesame oil', 'Chili flakes'],
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR9K2x5q8Z6zuBbHdewwGl63cMYOXKPiQCsDyGxuqvbVEJmuC_RQQ&s=10&ec=72940544'
+
+            },
+            
+            // Potato recipes
+            {
+                id: 10, 
+                vegetable: 'potato',
+                title: 'Crispy Roasted Potatoes',
+                time: '45 min',
+                difficulty: 'Easy',
+                description: 'Perfectly crispy on the outside, fluffy on the inside potatoes with herbs.',
+                ingredients: ['Potatoes', 'Olive oil', 'Rosemary', 'Thyme', 'Garlic powder', 'Salt'],
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT897jw2c7ofZo7myR7vqC5mhhEBGw4TSpXhUO8No_8x05nBlhk9Q&s=10&ec=72940544'
+
+            },
+            {
+                id: 11, 
+                vegetable: 'potato',
+                title: 'Creamy Mashed Potatoes',
+                time: '30 min',
+                difficulty: 'Easy',
+                description: 'Rich and creamy mashed potatoes that make the perfect side dish.',
+                ingredients: ['Potatoes', 'Butter', 'Cream', 'Garlic', 'Salt', 'Chives'],
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScz50cn-W-22xKa_1TDyeXbgIjyOdkM2dS5_Xlui0hVVlBgWURrg&s=10&ec=72940544'
+                
+            },
+            {
+                id: 12, 
+                vegetable: 'potato',
+                title: 'Potato Leek Soup',
+                time: '50 min',
+                difficulty: 'Medium',
+                description: 'Silky smooth potato leek soup - simple but elegant, with complex flavors.',
+                ingredients: ['Potatoes', 'Leeks', 'Onion', 'Vegetable broth', 'Cream', 'Bay leaf'],
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTPHo06xORgxkPsO00P3SZDSVK-LqUOmaUSDvlc_4LLCqHjOU8npQ&s=10&ec=72940544'
+
+            },
+            
+            // Cucumber recipes
+            {
+                id: 13, 
+                vegetable: 'cucumber',
+                title: 'Greek Tzatziki',
+                time: '15 min',
+                difficulty: 'Easy',
+                description: 'Refreshing yogurt and cucumber dip, perfect with grilled meats or as a sandwich spread.',
+                ingredients: ['Cucumber', 'Greek yogurt', 'Garlic', 'Dill', 'Lemon juice', 'Olive oil'],
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTg3GWved0t0jdQir0sXMvvsEbfmwl5jt5i8JW-mmt6T-niDNSHfA&s=10&ec=72940544'
+
+            },
+            {
+                id: 14, 
+                vegetable: 'cucumber',
+                title: 'Cucumber Salad',
+                time: '10 min',
+                difficulty: 'Easy',
+                description: 'Light and refreshing cucumber salad with a tangy vinegar dressing.',
+                ingredients: ['Cucumber', 'Red onion', 'Dill', 'Vinegar', 'Sugar', 'Black pepper'],
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfMs__WyraPAOW0zqtNIUJBtMjM_eP7eXQvvoW_xKRXMm8G_DQ8A&s=10&ec=72940544'
+
+            },
+            {
+                id: 15, 
+                vegetable: 'cucumber',
+                title: 'Cucumber Gazpacho',
+                time: '20 min',
+                difficulty: 'Medium',
+                description: 'Cool and refreshing cucumber soup, perfect for hot summer days.',
+                ingredients: ['Cucumber', 'Green pepper', 'Garlic', 'Olive oil', 'Yogurt', 'Mint'],
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREyuAwZb-ouxSO44SCO8Qr2_08uQ6N5uyz9RGJYKDapDgcmg9DgA&s=10&ec=72940544'
+
+            },
+            
+            // Eggplant recipes
+            {
+                id: 16, 
+                vegetable: 'eggplant',
+                title: 'Eggplant Parmesan',
+                time: '1 hour',
+                difficulty: 'Hard',
+                description: 'Classic Italian dish with layers of fried eggplant, cheese, and tomato sauce.',
+                ingredients: ['Eggplant', 'Mozzarella', 'Parmesan', 'Tomato sauce', 'Basil', 'Breadcrumbs'],
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDAzm3tpaElI-3nRApkcaiRHwDkI-hvvnax4_8BOaifnyXTBwxlQ&s=10&ec=72940544'
+
+            },
+            {
+                id: 17, 
+                vegetable: 'eggplant',
+                title: 'Baba Ganoush',
+                time: '45 min',
+                difficulty: 'Medium',
+                description: 'Smoky eggplant dip from the Middle East, perfect with pita bread.',
+                ingredients: ['Eggplant', 'Tahini', 'Garlic', 'Lemon juice', 'Olive oil', 'Parsley'],
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRGLyoTwRKofZ27A7qFaGRT6rPTct7YqFyI41KqONjadXF8YAxe_Q&s=10&ec=72940544'
+
+            },
+            {
+                id: 18, 
+                vegetable: 'eggplant',
+                title: 'Ratatouille',
+                time: '1 hour',
+                difficulty: 'Medium',
+                description: 'French Provençal stewed vegetable dish, featuring eggplant, tomatoes, and herbs.',
+                ingredients: ['Eggplant', 'Zucchini', 'Bell pepper', 'Tomatoes', 'Onion', 'Herbs de Provence'],
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRgWjno1P_Ozsj8JzYld5-OU-ypihj5OQbJDqcDCz8Lpng3yFfeMQ&s=10&ec=72940544'
+
+            }
+        ];
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            populateVegetables();
+            setupSearch();
+        });
+
+        // Populate vegetable cards
+        function populateVegetables() {
+            const vegetableGrid = document.getElementById('vegetable-grid');
+            
+            vegetables.forEach(vegetable => {
+                const card = document.createElement('div');
+                card.className = 'vegetable-card';
+                card.dataset.vegetable = vegetable.id;
+                card.innerHTML = `
+                    <img src="${vegetable.image}" alt="${vegetable.name}" class="vegetable-image">
+                    <div class="vegetable-name">${vegetable.name}</div>
+                `;
+                
+                card.addEventListener('click', () => selectVegetable(vegetable.id));
+                vegetableGrid.appendChild(card);
+            });
+        }
+
+        // Set up search functionality
+        function setupSearch() {
+            const searchInput = document.getElementById('search-input');
+            
+            searchInput.addEventListener('input', () => {
+                const searchTerm = searchInput.value.toLowerCase();
+                const vegetableCards = document.querySelectorAll('.vegetable-card');
+                
+                vegetableCards.forEach(card => {
+                    const vegetableName = card.querySelector('.vegetable-name').textContent.toLowerCase();
+                    
+                    if (vegetableName.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // Handle vegetable selection
+        function selectVegetable(vegetableId) {
+            // Update UI for selected vegetable
+            const vegetableCards = document.querySelectorAll('.vegetable-card');
+            vegetableCards.forEach(card => {
+                if (card.dataset.vegetable === vegetableId) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+            });
+            
+            // Filter recipes for selected vegetable
+            const filteredRecipes = recipes.filter(recipe => recipe.vegetable === vegetableId);
+            
+            // Show recipes section
+            const noSelection = document.getElementById('no-selection');
+            const recipesGrid = document.getElementById('recipes-grid');
+            
+            if (filteredRecipes.length > 0) {
+                noSelection.style.display = 'none';
+                recipesGrid.style.display = 'grid';
+                displayRecipes(filteredRecipes);
+            } else {
+                noSelection.style.display = 'block';
+                recipesGrid.style.display = 'none';
+                noSelection.innerHTML = `
+                    <h3>No recipes found for this vegetable</h3>
+                    <p>We're working on adding more recipes. Check back soon!</p>
+                `;
+            }
+        }
+
+        // Display recipes in the grid
+        function displayRecipes(recipes) {
+            const recipesGrid = document.getElementById('recipes-grid');
+            recipesGrid.innerHTML = '';
+            
+            recipes.forEach(recipe => {
+                const recipeCard = document.createElement('div');
+                recipeCard.className = 'recipe-card';
+                
+                // Generate ingredients list
+                let ingredientsTags = '';
+                recipe.ingredients.forEach(ingredient => {
+                    ingredientsTags += `<li class="ingredient-tag">${ingredient}</li>`;
+                });
+                
+                recipeCard.innerHTML = `
+                    <div class="recipe-image">
+                        <img src="${recipe.image}" alt="${recipe.title}">
+                    </div>
+                    <div class="recipe-content">
+                        <h3 class="recipe-title">${recipe.title}</h3>
+                        <div class="recipe-info">
+                            <div class="recipe-time">
+                                <i>⏱️</i> ${recipe.time}
+                            </div>
+                            <div class="recipe-difficulty">
+                                <i>📊</i> ${recipe.difficulty}
+                            </div>
+                        </div>
+                        <p class="recipe-description">${recipe.description}</p>
+                        <div class="recipe-ingredients">
+                            <h4 class="ingredients-title">Ingredients:</h4>
+                            <ul class="ingredients-list">
+                                ${ingredientsTags}
+                            </ul>
+                        </div>
+                        <a href="#" class="recipe-button">View Full Recipe</a>
+                    </div>
+                `;
+                
+                recipesGrid.appendChild(recipeCard);
+            });
+        }
+    </script>
+</body>
+</html>
