@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Multi-Track Window Cost Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --primary: #4facfe;
+      --primary-dark: #0074e4;
+      --secondary: #764ba2;
+      --green: #28a745;
+      --red: #e74c3c;
+      --white: #fff;
+      --grey: #f8f9fa;
+      --border: #e9ecef;
+      --shadow: 0 4px 24px #0001;
+      --radius: 16px;
+      --radius-s: 10px;
+      --font-main: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    html, body {
+      margin: 0; padding: 0; min-height: 100vh;
+      font-family: var(--font-main);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: #1b263b;
+    }
+
+    .navbar {
+      background: #222e;
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.8rem 2rem;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: var(--shadow);
+      font-size: 1.1rem;
+    }
+    .navbar .brand {
+      font-weight: 700;
+      font-size: 1.55rem;
+      letter-spacing: 0.01em;
+      color: var(--white);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .navbar .brand:hover { color: var(--primary); }
+    .navbar .nav {
+      display: flex; gap: 1.7rem;
+    }
+    .navbar .nav a {
+      color: var(--white);
+      text-decoration: none;
+      border-radius: 8px;
+      padding: 0.4em 0.9em;
+      transition: background 0.18s;
+    }
+    .navbar .nav a:hover, .navbar .nav a.active {
+      background: var(--primary);
+      color: var(--white);
+    }
+    .navbar .toggle {
+      display: none;
+      font-size: 2rem;
+      cursor: pointer;
+      margin-left: 1rem;
+    }
+    @media (max-width: 800px) {
+      .navbar { padding: 0.7rem 1rem; }
+      .navbar .nav { display: none; flex-direction: column; gap: 0; position: absolute; left: 0; right: 0; top: 60px; background: #222e; }
+      .navbar .nav.open { display: flex; }
+      .navbar .toggle { display: block; }
+    }
+
+    .container {
+      max-width: 1380px; margin: 2.2rem auto 0 auto; background: var(--white);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 0; overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: var(--white); text-align: center; padding: 2.3rem 1rem 1.6rem 1rem;
+      position: relative;
+    }
+    .header .user-bar {
+      position: absolute; top: 20px; right: 32px;
+      background: rgba(255,255,255,0.37); color: #222;
+      border-radius: 38px; box-shadow: var(--shadow);
+      display: flex; align-items: center; gap: 14px; padding: 8px 18px 8px 11px;
+      min-width: 160px;
+    }
+    .header .user-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--primary); color: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 1.12rem; box-shadow: 0 2px 10px #0002;
+    }
+    .header .user-details {
+      display: flex; flex-direction: column; align-items: flex-start;
+    }
+    .header .user-name { font-weight: 600; font-size: 1rem; }
+    .header .user-email { font-size: 0.93rem; opacity: 0.76; }
+    .header .logout-btn {
+      background: linear-gradient(135deg, var(--red) 0%, #ff5a5f 100%);
+      color: var(--white); border: none; border-radius: 12px;
+      font-size: 0.99rem; font-weight: 600; padding: 8px 18px;
+      margin-left: 8px; cursor: pointer; transition: background 0.16s;
+    }
+    .header .logout-btn:hover {
+      background: linear-gradient(135deg, #ff5a5f 0%, var(--red) 100%);
+    }
+
+    .header .logo-row {
+      display: flex; gap: 15px; align-items: center; justify-content: center; margin-top: 60px;
+    }
+    .header h1 {
+      font-size: 2.5rem; font-weight: 800; letter-spacing: 0.01em; margin: 0 0 8px 0;
+    }
+    .header p {
+      font-size: 1.12rem; opacity: 0.92; margin-bottom: 0;
+    }
+
+    .main-content {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1.9rem; padding: 2.3rem;
+      background: var(--grey);
+    }
+    @media (max-width: 1100px) {
+      .main-content { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .main-content { padding: 0.75rem; }
+      .header .logo-row { flex-direction: column; margin-top: 30px; }
+      .header h1 { font-size: 1.3rem; }
+      .header { padding: 1.2rem 0.4rem 1rem 0.4rem; }
+    }
+
+    .input-section, .results-section {
+      background: var(--white); border-radius: var(--radius-s);
+      border: 1.5px solid var(--border); padding: 1.35rem 1.3rem 1.6rem 1.3rem;
+      box-shadow: 0 3px 13px #0001;
+      min-width: 0;
+    }
+    .section-title {
+      font-weight: 700; color: #495057; font-size: 1.13rem;
+      margin-bottom: 13px; display: flex; align-items: center; gap: 10px;
+      letter-spacing: 0.01em;
+    }
+    .section-title .icon {
+      font-size: 1.25em; display: inline-flex; align-items: center;
+      justify-content: center; width: 1.7em; height: 1.7em;
+      background: var(--primary); color: var(--white);
+      border-radius: 50%;
+    }
+
+    .rates-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width:600px) { .rates-grid { grid-template-columns: 1fr; } }
+
+    .input-group { margin-bottom: 13px; }
+    .input-group label {
+      font-weight: 600; color: #495057; margin-bottom: 7px;
+      font-size: 0.96rem; display: block;
+    }
+    .input-group input {
+      width: 100%; padding: 11px 12px;
+      border: 2px solid var(--border); border-radius: 9px;
+      font-size: 1rem; background: var(--grey);
+      transition: border-color 0.24s, box-shadow 0.24s;
+    }
+    .input-group input:focus {
+      border-color: var(--primary); box-shadow: 0 0 0 2.5px #4facfe22;
+      background: var(--white);
+    }
+    .dimension-input {
+      display: flex; gap: 8px; align-items: center;
+    }
+    .conversion-info {
+      font-size: 0.83rem; color: #6c757d; margin-top: 4px;
+    }
+    .unit-toggle, .track-selector, .glass-toggle {
+      display: flex; gap: 8px; margin-top: 6px;
+    }
+    .unit-option, .track-option, .glass-option {
+      flex: 1; padding: 8px 0; border-radius: 8px;
+      border: 2px solid var(--border); background: var(--white);
+      text-align: center; font-weight: 500; cursor: pointer;
+      transition: background 0.19s, border-color 0.16s, color 0.16s;
+    }
+    .unit-option.active, .track-option.active, .glass-option.active {
+      background: var(--primary); color: var(--white); border-color: var(--primary);
+      box-shadow: 0 2px 8px #4facfe33;
+    }
+    .add-window-btn {
+      padding: 12px; background: linear-gradient(135deg, var(--green) 0%, #20c997 100%);
+      color: var(--white); border: none; border-radius: 10px;
+      font-size: 1.05rem; font-weight: 700; cursor: pointer;
+      width: 100%; transition: box-shadow 0.18s, transform 0.16s;
+      margin: 1.3rem 0 0.5rem 0;
+    }
+    .add-window-btn:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 4px 17px #20c99733;
+    }
+    .window-item {
+      background: var(--white); border: 1.7px solid var(--border);
+      border-radius: var(--radius-s); margin-bottom: 1.1rem; padding: 1.1rem 0.9rem;
+      box-shadow: 0 2px 8px #4facfe0a;
+      animation: fadeIn 0.4s;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(30px);} to { opacity: 1; transform: none; }}
+    .window-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+    }
+    .window-title { font-weight: 700; font-size: 1.05rem; }
+    .remove-window {
+      background: var(--red); color: var(--white); border: none;
+      border-radius: 7px; font-size: 0.91rem; padding: 5px 12px; cursor: pointer;
+      transition: background 0.18s, transform 0.14s;
+    }
+    .remove-window:hover { background: #d22; transform: scale(1.06);}
+    .weight-summary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: var(--white); padding: 12px 16px; border-radius: 8px; margin-top: 0.6rem;
+    }
+    .weight-summary .summary-item {
+      display: flex; justify-content: space-between; font-size: 0.98rem; margin-bottom: 5px;
+    }
+    .weight-summary .summary-item:last-child { margin-bottom: 0; }
+
+    .results-section .analytics-summary, .results-section .total-cost {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: var(--white); border-radius: 10px; margin-bottom: 23px; padding: 1.2rem;
+    }
+    .results-section .summary-item {
+      display: flex; justify-content: space-between; margin-bottom: 7px;
+      font-size: 1.01rem;
+    }
+    .results-section .summary-item:last-child {
+      border-top: 1px solid rgba(255,255,255,0.2); padding-top: 9px; margin-top: 9px;
+      font-weight: bold;
+    }
+    .cost-breakdown {
+      margin-top: 16px; margin-bottom: 10px;
+    }
+    .cost-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 9px 0; border-bottom: 1px solid #f1f3f4;
+    }
+    .cost-item:last-child {
+      border-bottom: none; border-top: 2px solid var(--primary);
+      margin-top: 9px; font-weight: bold; font-size: 1.13rem; color: var(--primary);
+    }
+    .cost-label { font-weight: 500; color: #495057; }
+    .cost-value { font-weight: 700; color: var(--green);}
+    .total-cost .amount {
+      font-size: 2.2rem; font-weight: 800; margin: 0.5rem 0 0 0;
+      letter-spacing: 0.01em;
+    }
+
+    .developer-footer {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      color: var(--white); padding: 2.2rem 1rem 1.7rem 1rem; text-align: center;
+      margin-top: 0;
+    }
+    .developer-card {
+      background: rgba(255,255,255,0.08); padding: 1.8rem; border-radius: var(--radius-s);
+      border: 1px solid rgba(255,255,255,0.14); max-width: 370px; margin: 0 auto;
+      backdrop-filter: blur(7px);
+    }
+    .developer-name { font-size: 1.18rem; font-weight: bold; margin-bottom: 11px; color: #1abc9c; }
+    .contact-info { display: flex; flex-direction: column; gap: 7px; }
+    .contact-item { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.99rem;}
+    .contact-icon { font-size: 1.16rem; width: 25px; text-align: center;}
+    @media (max-width:700px) {
+      .header .user-bar { right: 2vw; min-width: 100px; }
+      .main-content { padding: 0.4rem;}
+    }
+    /* Auth Modal */
+    #authModal {
+      position: fixed; z-index: 9999; top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(34,34,68,0.57);
+      display: none; align-items: center; justify-content: center;
+      animation: fadeIn 0.4s;
+      backdrop-filter: blur(3px);
+    }
+    #authModal.active { display: flex; }
+    #authModal > div {
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 20px 48px #3333cc22, 0 2px 8px #22337719;
+      max-width: 380px; width: 93vw;
+      padding: 36px 24px 24px 24px; position: relative;
+      animation: slideUp 0.4s;
+    }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(40px);} to { opacity: 1; transform: none;}}
+    #authModal h2 {
+      color: #2c3e50; font-size: 1.7rem; margin-bottom: 8px; text-align: center;
+      font-weight: 700; letter-spacing: 0.5px;
+    }
+    #authModal input[type="email"], #authModal input[type="text"], #authModal input[type="password"] {
+      width: 100%; padding: 13px 14px; font-size: 1rem; border-radius: 9px;
+      border: 2px solid #e2e6ec; background: var(--grey); margin-bottom: 14px;
+      transition: border-color 0.22s, box-shadow 0.22s;
+      outline: none; box-sizing: border-box;
+    }
+    #authModal input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px #4facfe22;
+      background: var(--white);
+    }
+    #authModal button {
+      width: 100%; padding: 13px 0;
+      background: linear-gradient(135deg, var(--primary) 0%, #00f2fe 100%);
+      color: #fff; font-weight: 700; font-size: 1.07rem;
+      border: none; border-radius: 9px; margin-bottom: 7px; cursor: pointer;
+      transition: box-shadow 0.18s, transform 0.16s;
+    }
+    #authModal button:disabled { background: #b1b5c2; cursor: not-allowed;}
+    #authModal button:hover:not(:disabled) {
+      box-shadow: 0 6px 18px #4facfe45;
+      transform: translateY(-2px) scale(1.02);
+    }
+    #authModal .switch-link {
+      text-align: center; margin-top: 9px; font-size: 0.97rem; color: #888;
+    }
+    #authModal .switch-link a {
+      color: var(--primary); font-weight: bold; cursor: pointer; text-decoration: none; transition: color 0.15s;
+    }
+    #authModal .switch-link a:hover { color: var(--primary-dark); text-decoration: underline;}
+    #authModal .msg { font-size: 1rem; min-height: 20px; text-align: center; margin: 7px 0; }
+    #authModal .msg.error { color: #d22; background: #fff2f3; border-radius: 7px;}
+    #authModal .msg.success { color: #1a9f55; background: #effff6; border-radius: 7px;}
+    #authModal .close-modal-btn {
+      position: absolute; top: 11px; right: 17px; background: transparent;
+      border: none; font-size: 1.5rem; color: #bbb; cursor: pointer; transition: color 0.17s;
+    }
+    #authModal .close-modal-btn:hover { color: var(--primary);}
+    @media (max-width: 500px) { #authModal > div { padding: 18px 4vw 16px 4vw;} #authModal h2 { font-size: 1.12rem;} }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="#" class="brand">MultiTrackCalc</a>
+    <div class="nav" id="navbar-menu">
+      <a href="#home" class="active">Home</a>
+      <a href="#about">About</a>
+      <a href="#services">Services</a>
+      <a href="#contact">Contact</a>
+      <a id="signupNavBtn" href="#" onclick="showAuth('signup')" style="background: var(--primary); color: var(--white); font-weight: 700;">Sign Up</a>
+    </div>
+    <span class="toggle" id="navbar-toggle">&#9776;</span>
+  </nav>
+  <!-- Auth Modal -->
+  <div id="authModal">
+    <div>
+      <button class="close-modal-btn" onclick="closeAuthModal()" aria-label="Close">&times;</button>
+      <div id="loginForm">
+        <h2>Login</h2>
+        <input type="email" id="loginEmail" placeholder="Enter Gmail" autocomplete="username" />
+        <button onclick="sendOtp('login')">Send OTP</button>
+        <div id="loginMsg" class="msg error"></div>
+        <div class="switch-link">Don't have an account? <a href="#" onclick="showAuth('signup')">Sign Up</a></div>
+      </div>
+      <div id="signupForm" style="display:none">
+        <h2>Sign Up</h2>
+        <input type="email" id="signupEmail" placeholder="Enter Gmail" autocomplete="username" />
+        <input type="text" id="signupName" placeholder="Your Name" autocomplete="name" />
+        <button onclick="sendOtp('signup')">Send OTP</button>
+        <div id="signupMsg" class="msg error"></div>
+        <div class="switch-link">Already have an account? <a href="#" onclick="showAuth('login')">Login</a></div>
+      </div>
+      <div id="otpForm" style="display:none">
+        <h2>Email Verification</h2>
+        <div id="otpMessage" class="msg"></div>
+        <input type="text" id="otpInput" maxlength="6" placeholder="Enter 6-digit OTP" autocomplete="one-time-code" />
+        <button onclick="verifyOtp()">Verify</button>
+        <div id="otpMsg" class="msg error"></div>
+        <div class="switch-link"><a href="#" onclick="resendOtp()" class="resend-otp-link">Resend OTP</a></div>
+        <div class="switch-link"><a href="#" onclick="showAuth('login')">← Back to Login</a></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <div class="user-bar" id="userInfo" style="display:none">
+        <div class="user-avatar" id="userAvatar"></div>
+        <div class="user-details">
+          <span class="user-name" id="userDisplayName"></span>
+          <span class="user-email" id="userLogin"></span>
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+      <div class="logo-row">
+        <svg width="44" height="44" fill="none" viewBox="0 0 48 48">
+          <rect width="20" height="20" x="4" y="4" fill="#fff" stroke="#0ac" stroke-width="2.5" rx="4"/>
+          <rect width="20" height="20" x="24" y="4" fill="#fff" stroke="#0ac" stroke-width="2.5" rx="4"/>
+          <rect width="20" height="20" x="4" y="24" fill="#fff" stroke="#0ac" stroke-width="2.5" rx="4"/>
+          <rect width="20" height="20" x="24" y="24" fill="#fff" stroke="#0ac" stroke-width="2.5" rx="4"/>
+        </svg>
+        <h1>Multi-Track Window Calculator</h1>
+      </div>
+      <p>Advanced cost calculation for multiple windows & track configurations</p>
+    </div>
+    <div class="main-content">
+      <div class="input-section">
+        <div class="section-title">
+          <span class="icon">⚙️</span>
+          Rate Configuration
+        </div>
+        <div class="rates-grid">
+          <div class="input-group">
+            <label for="outerFrameRate">Outer Frame (₹/kg)</label>
+            <input type="number" id="outerFrameRate" value="325" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="innerFrameRate">Inner Frame (₹/kg)</label>
+            <input type="number" id="innerFrameRate" value="325" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="powderCoatingRate">Powder Coating (₹/kg)</label>
+            <input type="number" id="powderCoatingRate" value="60" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="laborRate">Labor (₹/ft²)</label>
+            <input type="number" id="laborRate" value="50" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="clampPrice">Clamp (₹/piece)</label>
+            <input type="number" id="clampPrice" value="20" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="clearGlassRate">Clear Glass (₹/ft²)</label>
+            <input type="number" id="clearGlassRate" value="45" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="reflectiveGlassRate">Reflective Glass (₹/ft²)</label>
+            <input type="number" id="reflectiveGlassRate" value="75" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="rubberRate">Rubber (₹/ft)</label>
+            <input type="number" id="rubberRate" value="8" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="lockPrice">Lock (₹)</label>
+            <input type="number" id="lockPrice" value="200" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="bearingPrice">Bearing (₹/piece)</label>
+            <input type="number" id="bearingPrice" value="45" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="woolFileRate">Wool File (₹/ft)</label>
+            <input type="number" id="woolFileRate" value="2" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="otherChargesRate">Other Charges (₹/ft²)</label>
+            <input type="number" id="otherChargesRate" value="5" min="0" step="0.01">
+          </div>
+        </div>
+        <div class="section-title" style="margin-top: 23px;">
+          <span class="icon">🪟</span>
+          Windows Configuration
+        </div>
+        <button class="add-window-btn" onclick="addWindow()">➕ Add New Window</button>
+        <div id="windowsContainer"></div>
+      </div>
+      <div class="results-section">
+        <div class="section-title">
+          <span class="icon">📊</span>
+          Project Summary
+        </div>
+        <div class="analytics-summary">
+          <div class="summary-item"><span>Total Windows:</span> <span id="totalWindows">0</span></div>
+          <div class="summary-item"><span>Total Area:</span> <span id="totalArea">0.00 ft²</span></div>
+          <div class="summary-item"><span>Outer Frame Weight:</span> <span id="outerFrameWeight">0.00 kg</span></div>
+          <div class="summary-item"><span>Inner Frame Weight:</span> <span id="innerFrameWeight">0.00 kg</span></div>
+          <div class="summary-item"><span>Total Weight:</span> <span id="totalWeight">0.00 kg</span></div>
+          <div class="summary-item"><span>Avg Cost per ft²:</span> <span id="avgCostPerSqFt">₹0.00</span></div>
+        </div>
+        <div class="section-title">
+          <span class="icon">💰</span>
+          Total Cost Breakdown
+        </div>
+        <div class="cost-breakdown" id="totalCostBreakdown"></div>
+        <div class="total-cost">
+          <h3>Total Project Cost</h3>
+          <div class="amount" id="grandTotal">₹0.00</div>
+        </div>
+        <div class="analytics-summary" style="margin-top: 0.7rem;">
+          <div class="summary-item">
+            <span>Average Cost per Window:</span>
+            <span id="avgCostPerWindow">₹0.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="developer-footer">
+      <div class="developer-info">
+        <h3>🪟 Developed By</h3>
+        <div class="developer-card">
+          <div class="developer-name">Abbas Taherbhai Vakhariya</div>
+          <div class="contact-info">
+            <div class="contact-item"><span class="contact-icon">📱</span> <span>+91 8799668397</span></div>
+            <div class="contact-item"><span class="contact-icon">✉️</span> <span>abbasvakhariya00@gmail.com</span></div>
+            <div class="contact-item"><span class="contact-icon">📍</span> <span>Rajkot, Gujarat</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    // NAVBAR toggle
+    const navbarToggle = document.getElementById('navbar-toggle');
+    const navbarMenu = document.getElementById('navbar-menu');
+    navbarToggle.onclick = function () {
+      navbarMenu.classList.toggle('open');
+    };
+    document.querySelectorAll('.navbar .nav a').forEach(link => {
+      link.onclick = () => navbarMenu.classList.remove('open');
+    });
+
+    // ==== LOGIN / SIGNUP / OTP LOGIC ====
+    let authEmail = '', authType = '';
+    function showAuth(type) {
+      document.getElementById('authModal').classList.add('active');
+      document.getElementById('loginForm').style.display = type === 'login' ? 'block' : 'none';
+      document.getElementById('signupForm').style.display = type === 'signup' ? 'block' : 'none';
+      document.getElementById('otpForm').style.display = 'none';
+      document.getElementById('loginMsg').textContent = '';
+      document.getElementById('signupMsg').textContent = '';
+      document.getElementById('otpMsg').textContent = '';
+    }
+    function closeAuthModal() {
+      document.getElementById('authModal').classList.remove('active');
+    }
+    function isValidGmail(email) {
+      return /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email);
+    }
+    function sendOtp(type) {
+      let email, name;
+      if (type === 'login') {
+        email = document.getElementById('loginEmail').value.trim();
+        if (!isValidGmail(email)) {
+          document.getElementById('loginMsg').textContent = 'Please enter a valid Gmail address.';
+          return;
+        }
+      } else {
+        email = document.getElementById('signupEmail').value.trim();
+        name = document.getElementById('signupName').value.trim();
+        if (!isValidGmail(email)) {
+          document.getElementById('signupMsg').textContent = 'Please enter a valid Gmail address.';
+          return;
+        }
+        if (!name) {
+          document.getElementById('signupMsg').textContent = 'Please enter your name.';
+          return;
+        }
+      }
+      authEmail = email; authType = type;
+      document.getElementById('loginForm').style.display = 'none';
+      document.getElementById('signupForm').style.display = 'none';
+      document.getElementById('otpForm').style.display = 'block';
+      document.getElementById('otpMessage').textContent = 'Sending OTP...';
+      setTimeout(() => {
+        document.getElementById('otpMessage').textContent = `A 6-digit OTP has been sent to ${authEmail}.`;
+        document.getElementById('otpInput').value = '';
+        document.getElementById('otpMsg').textContent = '';
+      }, 700);
+    }
+    function resendOtp() {
+      document.getElementById('otpMessage').textContent = 'Resending OTP...';
+      setTimeout(() => {
+        document.getElementById('otpMessage').textContent = `A new OTP has been sent to ${authEmail}.`;
+      }, 600);
+    }
+    function verifyOtp() {
+      const otp = document.getElementById('otpInput').value.trim();
+      document.getElementById('otpMsg').textContent = '';
+      if (!otp.match(/^\d{6}$/)) {
+        document.getElementById('otpMsg').textContent = 'Please enter a valid 6-digit OTP.';
+        return;
+      }
+      document.getElementById('otpMsg').textContent = 'Verifying...';
+      setTimeout(() => {
+        document.getElementById('authModal').classList.remove('active');
+        localStorage.setItem('windowcalc_user', JSON.stringify({
+          email: authEmail,
+          name: authType === 'signup'
+            ? document.getElementById('signupName').value.trim()
+            : authEmail.split('@')[0]
+        }));
+        showUserInfo();
+      }, 900);
+    }
+    function showUserInfo() {
+      const user = JSON.parse(localStorage.getItem('windowcalc_user'));
+      const bar = document.getElementById('userInfo');
+      bar.style.display = 'flex';
+      document.getElementById('userAvatar').textContent = user.name
+        ? user.name[0].toUpperCase()
+        : (user.email || 'U')[0].toUpperCase();
+      document.getElementById('userDisplayName').textContent = user.name || user.email.split('@')[0];
+      document.getElementById('userLogin').textContent = user.email;
+    }
+    function logout() {
+      localStorage.removeItem('windowcalc_user');
+      document.getElementById('userInfo').style.display = 'none';
+      showAuth('login');
+    }
+    window.addEventListener('DOMContentLoaded', function () {
+      if (!localStorage.getItem('windowcalc_user')) showAuth('login');
+      else showUserInfo();
+    });
+    // WINDOW CALCULATOR LOGIC
+    let windowCounter = 0;
+    let windows = {};
+    const rates = {
+      outerFrameWeight: 206.25,
+      innerFrameWeight: 187.5,
+      clampingLockWeight: 187.5,
+    };
+    function convertToFeet(value, unit) { return unit === 'inches' ? value / 12 : value; }
+    function addWindow() {
+      windowCounter++;
+      const windowId = `window_${windowCounter}`;
+      const windowHtml = `
+        <div class="window-item" id="${windowId}">
+          <div class="window-header">
+            <div class="window-title">Window ${windowCounter}</div>
+            <button class="remove-window" onclick="removeWindow('${windowId}')">Remove</button>
+          </div>
+          <div class="input-group">
+            <label>Dimensions Unit</label>
+            <div class="unit-toggle">
+              <div class="unit-option active" data-unit="feet" onclick="switchUnit('${windowId}', 'feet')">Feet</div>
+              <div class="unit-option" data-unit="inches" onclick="switchUnit('${windowId}', 'inches')">Inches</div>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Width</label>
+            <div class="dimension-input">
+              <input type="number" class="width-input" value="4" min="0.1" step="0.1" onchange="updateWindow('${windowId}')">
+              <div class="conversion-info" id="${windowId}_width_conversion"></div>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Height</label>
+            <div class="dimension-input">
+              <input type="number" class="height-input" value="4" min="0.1" step="0.1" onchange="updateWindow('${windowId}')">
+              <div class="conversion-info" id="${windowId}_height_conversion"></div>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Number of Tracks</label>
+            <div class="track-selector">
+              <div class="track-option active" data-tracks="2" onclick="setTracks('${windowId}', 2)">2 Track</div>
+              <div class="track-option" data-tracks="3" onclick="setTracks('${windowId}', 3)">3 Track</div>
+              <div class="track-option" data-tracks="4" onclick="setTracks('${windowId}', 4)">4 Track</div>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Glass Type</label>
+            <div class="glass-toggle">
+              <div class="glass-option active" data-type="clear" onclick="setGlassType('${windowId}', 'clear')">
+                Clear Glass<br><small>₹45/ft²</small>
+              </div>
+              <div class="glass-option" data-type="reflective" onclick="setGlassType('${windowId}', 'reflective')">
+                Reflective Glass<br><small>₹75/ft²</small>
+              </div>
+            </div>
+          </div>
+          <div class="weight-summary">
+            <div class="summary-item">
+              <span>Area:</span>
+              <span class="window-area">16.00 ft²</span>
+            </div>
+            <div class="summary-item">
+              <span>Total Weight:</span>
+              <span class="window-weight">8.60 kg</span>
+            </div>
+            <div class="summary-item">
+              <span>Window Cost:</span>
+              <span class="window-cost">₹5,853.72</span>
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById('windowsContainer').insertAdjacentHTML('beforeend', windowHtml);
+      windows[windowId] = { width: 4, height: 4, unit: 'feet', tracks: 2, glassType: 'clear' };
+      updateWindow(windowId);
+      updateTotalSummary();
+    }
+    function removeWindow(windowId) {
+      document.getElementById(windowId).remove();
+      delete windows[windowId];
+      updateTotalSummary();
+    }
+    function switchUnit(windowId, unit) {
+      const window = document.getElementById(windowId);
+      window.querySelectorAll('.unit-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.unit === unit);
+      });
+      windows[windowId].unit = unit;
+      updateWindow(windowId);
+    }
+    function setTracks(windowId, tracks) {
+      const window = document.getElementById(windowId);
+      window.querySelectorAll('.track-option').forEach(opt => {
+        opt.classList.toggle('active', parseInt(opt.dataset.tracks) === tracks);
+      });
+      windows[windowId].tracks = tracks;
+      updateWindow(windowId);
+    }
+    function setGlassType(windowId, glassType) {
+      const window = document.getElementById(windowId);
+      window.querySelectorAll('.glass-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.type === glassType);
+      });
+      windows[windowId].glassType = glassType;
+      updateWindow(windowId);
+    }
+    function updateWindow(windowId) {
+      const windowElement = document.getElementById(windowId);
+      const widthInput = windowElement.querySelector('.width-input');
+      const heightInput = windowElement.querySelector('.height-input');
+      const widthValue = parseFloat(widthInput.value) || 4;
+      const heightValue = parseFloat(heightInput.value) || 4;
+      windows[windowId].width = widthValue;
+      windows[windowId].height = heightValue;
+      const widthFt = convertToFeet(widthValue, windows[windowId].unit);
+      const heightFt = convertToFeet(heightValue, windows[windowId].unit);
+      document.getElementById(`${windowId}_width_conversion`).textContent =
+        windows[windowId].unit === 'inches' ? `= ${widthFt.toFixed(2)} ft` : '';
+      document.getElementById(`${windowId}_height_conversion`).textContent =
+        windows[windowId].unit === 'inches' ? `= ${heightFt.toFixed(2)} ft` : '';
+      const windowData = calculateWindowCost(widthFt, heightFt, windows[windowId].tracks, windows[windowId].glassType);
+      windowElement.querySelector('.window-area').textContent = `${windowData.area.toFixed(2)} ft²`;
+      windowElement.querySelector('.window-weight').textContent = `${windowData.totalWeight.toFixed(2)} kg`;
+      windowElement.querySelector('.window-cost').textContent = `₹${windowData.totalCost.toFixed(2)}`;
+      updateTotalSummary();
+    }
+    function calculateWindowCost(width, height, tracks, glassType) {
+      const area = width * height;
+      const outerFrameRate = parseFloat(document.getElementById('outerFrameRate').value) || 325;
+      const innerFrameRate = parseFloat(document.getElementById('innerFrameRate').value) || 325;
+      const powderCoatingRate = parseFloat(document.getElementById('powderCoatingRate').value) || 60;
+      const laborRate = parseFloat(document.getElementById('laborRate').value) || 50;
+      const clampPrice = parseFloat(document.getElementById('clampPrice').value) || 20;
+      const clearGlassRate = parseFloat(document.getElementById('clearGlassRate').value) || 45;
+      const reflectiveGlassRate = parseFloat(document.getElementById('reflectiveGlassRate').value) || 75;
+      const rubberRate = parseFloat(document.getElementById('rubberRate').value) || 8;
+      const lockPrice = parseFloat(document.getElementById('lockPrice').value) || 200;
+      const bearingPrice = parseFloat(document.getElementById('bearingPrice').value) || 45;
+      const woolFileRate = parseFloat(document.getElementById('woolFileRate').value) || 2;
+      const otherChargesRate = parseFloat(document.getElementById('otherChargesRate').value) || 5;
+      const outerPerimeter = 2 * (width + height);
+      const outerWeight = (outerPerimeter * rates.outerFrameWeight) / 1000;
+      const innerWeight = (tracks * 3 * height * rates.innerFrameWeight) / 1000;
+      const clampingWeight = (height * 2 * rates.clampingLockWeight) / 1000;
+      const totalWeight = outerWeight + innerWeight + clampingWeight;
+      const costs = {
+        outerFrame: outerWeight * outerFrameRate,
+        innerFrame: innerWeight * innerFrameRate,
+        clampingLock: clampingWeight * outerFrameRate,
+        outerClamps: 4 * clampPrice,
+        innerClamps: tracks * 4 * 2 * clampPrice,
+        powderCoating: totalWeight * powderCoatingRate,
+        glass: area * (glassType === 'clear' ? clearGlassRate : reflectiveGlassRate),
+        labor: area * laborRate,
+        rubber: (tracks * 3 * height) * rubberRate,
+        lock: lockPrice,
+        bearings: tracks * 2 * bearingPrice,
+        woolFile: (outerPerimeter + (2 * width) + (2 * height) + (tracks * 2 * height)) * woolFileRate,
+        otherCharges: area * otherChargesRate
+      };
+      const totalCost = Object.values(costs).reduce((sum, cost) => sum + cost, 0);
+      return { area, outerWeight, innerWeight, clampingWeight, totalWeight, costs, totalCost };
+    }
+    function updateTotalSummary() {
+      let totalWindows = 0, totalArea = 0, outerFrameWeight = 0, innerFrameWeight = 0, totalWeight = 0, grandTotal = 0;
+      const aggregatedCosts = {};
+      Object.keys(windows).forEach(windowId => {
+        const windowData = windows[windowId];
+        const widthFt = convertToFeet(windowData.width, windowData.unit);
+        const heightFt = convertToFeet(windowData.height, windowData.unit);
+        const calculated = calculateWindowCost(widthFt, heightFt, windowData.tracks, windowData.glassType);
+        totalWindows++;
+        totalArea += calculated.area;
+        outerFrameWeight += calculated.outerWeight;
+        innerFrameWeight += calculated.innerWeight;
+        totalWeight += calculated.totalWeight;
+        grandTotal += calculated.totalCost;
+        Object.keys(calculated.costs).forEach(costType => {
+          if (!aggregatedCosts[costType]) aggregatedCosts[costType] = 0;
+          aggregatedCosts[costType] += calculated.costs[costType];
+        });
+      });
+      document.getElementById('totalWindows').textContent = totalWindows;
+      document.getElementById('totalArea').textContent = `${totalArea.toFixed(2)} ft²`;
+      document.getElementById('outerFrameWeight').textContent = `${outerFrameWeight.toFixed(2)} kg`;
+      document.getElementById('innerFrameWeight').textContent = `${innerFrameWeight.toFixed(2)} kg`;
+      document.getElementById('totalWeight').textContent = `${totalWeight.toFixed(2)} kg`;
+      document.getElementById('avgCostPerSqFt').textContent = totalArea > 0 ? `₹${(grandTotal / totalArea).toFixed(2)}` : '₹0.00';
+      const breakdownContainer = document.getElementById('totalCostBreakdown');
+      breakdownContainer.innerHTML = '';
+      Object.keys(aggregatedCosts).forEach(costType => {
+        const label = costType.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        breakdownContainer.innerHTML += `
+          <div class="cost-item">
+            <span class="cost-label">${label}</span>
+            <span class="cost-value">₹${aggregatedCosts[costType].toFixed(2)}</span>
+          </div>
+        `;
+      });
+      breakdownContainer.innerHTML += `
+        <div class="cost-item">
+          <span class="cost-label">Grand Total</span>
+          <span class="cost-value">₹${grandTotal.toFixed(2)}</span>
+        </div>
+      `;
+      document.getElementById('grandTotal').textContent = `₹${grandTotal.toFixed(2)}`;
+      document.getElementById('avgCostPerWindow').textContent = totalWindows > 0 ? `₹${(grandTotal / totalWindows).toFixed(2)}` : '₹0.00';
+    }
+    document.querySelectorAll('.rates-grid input').forEach(input => {
+      input.addEventListener('input', () => {
+        Object.keys(windows).forEach(windowId => updateWindow(windowId));
+        updateTotalSummary();
+      });
+    });
+    window.onload = function () { addWindow(); };
+  </script>
+</body>
+</html>

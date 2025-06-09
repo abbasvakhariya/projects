@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Multi-Track Window Cost Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* ... All your CSS above, unchanged ... */
+    /* For brevity, keep your provided CSS */
+  </style>
+</head>
+<body>
+  <!-- ... Navbar, Auth Modal, Header, etc... unchanged ... -->
+
+  <div class="container">
+    <div class="header">
+      <!-- ... unchanged ... -->
+    </div>
+    <div class="main-content">
+      <div class="input-section">
+        <div class="section-title">
+          <span class="icon">⚙️</span>
+          Rate Configuration
+        </div>
+        <!-- PROFILE CONFIGURATION TABLES -->
+        <div class="rates-grid" id="profileRatesGrid" style="grid-column: 1 / span 2; margin-bottom: 20px;">
+          <div style="grid-column: 1 / span 2;">
+            <b>Outer Frame Profiles:</b>
+            <table style="width:100%; margin-bottom:8px;">
+              <thead>
+                <tr>
+                  <th>Type</th><th>Thickness (mm)</th><th>Weight/ft (kg)</th><th>Rate/kg (₹)</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="outerFrameProfilesBody"></tbody>
+            </table>
+            <button onclick="addProfile('outerFrame')" style="margin-bottom:15px;">+ Add Outer Frame Profile</button>
+          </div>
+          <div style="grid-column: 1 / span 2;">
+            <b>Inner Frame Profiles:</b>
+            <table style="width:100%; margin-bottom:8px;">
+              <thead>
+                <tr>
+                  <th>Type</th><th>Thickness (mm)</th><th>Weight/ft (kg)</th><th>Rate/kg (₹)</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="innerFrameProfilesBody"></tbody>
+            </table>
+            <button onclick="addProfile('innerFrame')" style="margin-bottom:15px;">+ Add Inner Frame Profile</button>
+          </div>
+          <div style="grid-column: 1 / span 2;">
+            <b>Clamping Lock Profiles:</b>
+            <table style="width:100%; margin-bottom:8px;">
+              <thead>
+                <tr>
+                  <th>Type</th><th>Thickness (mm)</th><th>Weight/ft (kg)</th><th>Rate/kg (₹)</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="clampingLockProfilesBody"></tbody>
+            </table>
+            <button onclick="addProfile('clampingLock')" style="margin-bottom:15px;">+ Add Clamping Lock Profile</button>
+          </div>
+        </div>
+        <!-- REST OF RATE CONFIGURATION UNCHANGED -->
+        <div class="rates-grid">
+          <!-- unchanged: all your other input rates (powder, glass, labor, etc) -->
+          <div class="input-group">
+            <label for="powderCoatingRate">Powder Coating (₹/kg)</label>
+            <input type="number" id="powderCoatingRate" value="60" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="laborRate">Labor (₹/ft²)</label>
+            <input type="number" id="laborRate" value="50" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="clampPrice">Clamp (₹/piece)</label>
+            <input type="number" id="clampPrice" value="20" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="clearGlassRate">Clear Glass (₹/ft²)</label>
+            <input type="number" id="clearGlassRate" value="45" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="reflectiveGlassRate">Reflective Glass (₹/ft²)</label>
+            <input type="number" id="reflectiveGlassRate" value="75" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="rubberRate">Rubber (₹/ft)</label>
+            <input type="number" id="rubberRate" value="8" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="lockPrice">Lock (₹)</label>
+            <input type="number" id="lockPrice" value="200" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="bearingPrice">Bearing (₹/piece)</label>
+            <input type="number" id="bearingPrice" value="45" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="woolFileRate">Wool File (₹/ft)</label>
+            <input type="number" id="woolFileRate" value="2" min="0" step="0.01">
+          </div>
+          <div class="input-group">
+            <label for="otherChargesRate">Other Charges (₹/ft²)</label>
+            <input type="number" id="otherChargesRate" value="5" min="0" step="0.01">
+          </div>
+        </div>
+        <div class="section-title" style="margin-top: 23px;">
+          <span class="icon">🪟</span>
+          Windows Configuration
+        </div>
+        <button class="add-window-btn" onclick="addWindow()">➕ Add New Window</button>
+        <div id="windowsContainer"></div>
+      </div>
+      <div class="results-section">
+        <div class="section-title">
+          <span class="icon">📊</span>
+          Project Summary
+        </div>
+        <div class="analytics-summary">
+          <div class="summary-item"><span>Total Windows:</span> <span id="totalWindows">0</span></div>
+          <div class="summary-item"><span>Total Area:</span> <span id="totalArea">0.00 ft²</span></div>
+          <div class="summary-item"><span>Outer Frame Weight:</span> <span id="outerFrameWeight">0.00 kg</span></div>
+          <div class="summary-item"><span>Inner Frame Weight:</span> <span id="innerFrameWeight">0.00 kg</span></div>
+          <div class="summary-item"><span>Total Weight:</span> <span id="totalWeight">0.00 kg</span></div>
+          <div class="summary-item"><span>Avg Cost per ft²:</span> <span id="avgCostPerSqFt">₹0.00</span></div>
+        </div>
+        <div class="section-title">
+          <span class="icon">💰</span>
+          Total Cost Breakdown
+        </div>
+        <div class="cost-breakdown" id="totalCostBreakdown"></div>
+        <div class="total-cost">
+          <h3>Total Project Cost</h3>
+          <div class="amount" id="grandTotal">₹0.00</div>
+        </div>
+        <div class="analytics-summary" style="margin-top: 0.7rem;">
+          <div class="summary-item">
+            <span>Average Cost per Window:</span>
+            <span id="avgCostPerWindow">₹0.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ... Developer footer ... -->
+  </div>
+  <script>
+    // ------------ PROFILE MANAGER ------------
+    // profileTypes: ['outerFrame','innerFrame','clampingLock']
+    const defaultProfiles = {
+      outerFrame: [
+        { type: "1.1mm", thickness: 1.1, weightPerFt: 0.206, ratePerKg: 325 },
+        { type: "1.2mm", thickness: 1.2, weightPerFt: 0.228, ratePerKg: 335 },
+        { type: "1.3mm", thickness: 1.3, weightPerFt: 0.245, ratePerKg: 345 },
+        { type: "1.4mm", thickness: 1.4, weightPerFt: 0.265, ratePerKg: 355 },
+        { type: "1.5mm", thickness: 1.5, weightPerFt: 0.286, ratePerKg: 365 }
+      ],
+      innerFrame: [
+        { type: "1.1mm", thickness: 1.1, weightPerFt: 0.187, ratePerKg: 325 },
+        { type: "1.2mm", thickness: 1.2, weightPerFt: 0.208, ratePerKg: 335 },
+        { type: "1.3mm", thickness: 1.3, weightPerFt: 0.222, ratePerKg: 345 },
+        { type: "1.4mm", thickness: 1.4, weightPerFt: 0.241, ratePerKg: 355 },
+        { type: "1.5mm", thickness: 1.5, weightPerFt: 0.260, ratePerKg: 365 }
+      ],
+      clampingLock: [
+        { type: "1.1mm", thickness: 1.1, weightPerFt: 0.170, ratePerKg: 320 },
+        { type: "1.2mm", thickness: 1.2, weightPerFt: 0.184, ratePerKg: 330 },
+        { type: "1.3mm", thickness: 1.3, weightPerFt: 0.200, ratePerKg: 340 },
+        { type: "1.4mm", thickness: 1.4, weightPerFt: 0.213, ratePerKg: 350 },
+        { type: "1.5mm", thickness: 1.5, weightPerFt: 0.229, ratePerKg: 360 }
+      ]
+    };
+    // True state
+    let profiles = {
+      outerFrame: JSON.parse(JSON.stringify(defaultProfiles.outerFrame)),
+      innerFrame: JSON.parse(JSON.stringify(defaultProfiles.innerFrame)),
+      clampingLock: JSON.parse(JSON.stringify(defaultProfiles.clampingLock)),
+    };
+    function renderProfiles() {
+      ['outerFrame', 'innerFrame', 'clampingLock'].forEach(profileType => {
+        const tbody = document.getElementById(profileType + "ProfilesBody");
+        tbody.innerHTML = "";
+        profiles[profileType].forEach((p, i) => {
+          tbody.innerHTML += `
+            <tr>
+              <td><input value="${p.type}" style="width:70px" onchange="editProfile('${profileType}',${i},'type',this.value)"></td>
+              <td><input type="number" value="${p.thickness}" step="0.01" min="0.1" style="width:70px" onchange="editProfile('${profileType}',${i},'thickness',parseFloat(this.value)||0)"></td>
+              <td><input type="number" value="${p.weightPerFt}" step="0.001" min="0.01" style="width:70px" onchange="editProfile('${profileType}',${i},'weightPerFt',parseFloat(this.value)||0)"></td>
+              <td><input type="number" value="${p.ratePerKg}" step="1" min="0" style="width:70px" onchange="editProfile('${profileType}',${i},'ratePerKg',parseFloat(this.value)||0)"></td>
+              <td><button onclick="removeProfile('${profileType}',${i})" style="color:#fff;background:#e74c3c;padding:3px 8px;border-radius:5px;border:none;">🗑️</button></td>
+            </tr>
+          `;
+        });
+      });
+    }
+    function addProfile(profileType) {
+      profiles[profileType].push({ type: "New", thickness: 1.1, weightPerFt: 0.2, ratePerKg: 300 });
+      renderProfiles();
+      updateAllWindows();
+    }
+    function removeProfile(profileType, idx) {
+      profiles[profileType].splice(idx, 1);
+      renderProfiles();
+      updateAllWindows();
+    }
+    function editProfile(profileType, idx, key, val) {
+      profiles[profileType][idx][key] = val;
+      updateAllWindows();
+    }
+    // ------------ END PROFILE MANAGER ------------
+
+    // ------------ WINDOW LOGIC -------------
+    let windowCounter = 0;
+    let windows = {};
+    function convertToFeet(value, unit) { return unit === 'inches' ? value / 12 : value; }
+    function addWindow() {
+      windowCounter++;
+      const windowId = `window_${windowCounter}`;
+      // Per window, store indices for selected profiles
+      windows[windowId] = {
+        width: 4, height: 4, unit: 'feet', tracks: 2, glassType: 'clear',
+        outerFrameProfile: 0, innerFrameProfile: 0, clampingLockProfile: 0
+      };
+      renderWindow(windowId);
+      updateWindow(windowId);
+      updateTotalSummary();
+    }
+    function renderWindow(windowId) {
+      const w = windows[windowId];
+      let outerSel = profiles.outerFrame.map((p, idx) =>
+        `<option value="${idx}" ${w.outerFrameProfile == idx ? "selected" : ""}>${p.type} (${p.thickness}mm, ${p.weightPerFt}kg/ft, ₹${p.ratePerKg}/kg)</option>`
+      ).join("");
+      let innerSel = profiles.innerFrame.map((p, idx) =>
+        `<option value="${idx}" ${w.innerFrameProfile == idx ? "selected" : ""}>${p.type} (${p.thickness}mm, ${p.weightPerFt}kg/ft, ₹${p.ratePerKg}/kg)</option>`
+      ).join("");
+      let clampSel = profiles.clampingLock.map((p, idx) =>
+        `<option value="${idx}" ${w.clampingLockProfile == idx ? "selected" : ""}>${p.type} (${p.thickness}mm, ${p.weightPerFt}kg/ft, ₹${p.ratePerKg}/kg)</option>`
+      ).join("");
+      const windowHtml = `
+        <div class="window-item" id="${windowId}">
+          <div class="window-header">
+            <div class="window-title">Window ${windowId.split('_')[1]}</div>
+            <button class="remove-window" onclick="removeWindow('${windowId}')">Remove</button>
+          </div>
+          <div class="input-group">
+            <label>Dimensions Unit</label>
+            <div class="unit-toggle">
+              <div class="unit-option ${w.unit === 'feet' ? "active" : ""}" data-unit="feet" onclick="switchUnit('${windowId}', 'feet')">Feet</div>
+              <div class="unit-option ${w.unit === 'inches' ? "active" : ""}" data-unit="inches" onclick="switchUnit('${windowId}', 'inches')">Inches</div>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Width</label>
+            <div class="dimension-input">
+              <input type="number" class="width-input" value="${w.width}" min="0.1" step="0.1" onchange="setWindowVal('${windowId}','width',this.value)">
+              <div class="conversion-info" id="${windowId}_width_conversion"></div>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Height</label>
+            <div class="dimension-input">
+              <input type="number" class="height-input" value="${w.height}" min="0.1" step="0.1" onchange="setWindowVal('${windowId}','height',this.value)">
+              <div class="conversion-info" id="${windowId}_height_conversion"></div>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Outer Frame Profile</label>
+            <select onchange="setWindowVal('${windowId}','outerFrameProfile',this.value)">${outerSel}</select>
+          </div>
+          <div class="input-group">
+            <label>Inner Frame Profile</label>
+            <select onchange="setWindowVal('${windowId}','innerFrameProfile',this.value)">${innerSel}</select>
+          </div>
+          <div class="input-group">
+            <label>Clamping Lock Profile</label>
+            <select onchange="setWindowVal('${windowId}','clampingLockProfile',this.value)">${clampSel}</select>
+          </div>
+          <div class="input-group">
+            <label>Number of Tracks</label>
+            <div class="track-selector">
+              <div class="track-option ${w.tracks==2?"active":""}" data-tracks="2" onclick="setTracks('${windowId}', 2)">2 Track</div>
+              <div class="track-option ${w.tracks==3?"active":""}" data-tracks="3" onclick="setTracks('${windowId}', 3)">3 Track</div>
+              <div class="track-option ${w.tracks==4?"active":""}" data-tracks="4" onclick="setTracks('${windowId}', 4)">4 Track</div>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Glass Type</label>
+            <div class="glass-toggle">
+              <div class="glass-option ${w.glassType=='clear'?"active":""}" data-type="clear" onclick="setGlassType('${windowId}', 'clear')">
+                Clear Glass<br><small>₹45/ft²</small>
+              </div>
+              <div class="glass-option ${w.glassType=='reflective'?"active":""}" data-type="reflective" onclick="setGlassType('${windowId}', 'reflective')">
+                Reflective Glass<br><small>₹75/ft²</small>
+              </div>
+            </div>
+          </div>
+          <div class="weight-summary" id="${windowId}_summary"></div>
+        </div>
+      `;
+      // If already rendered, replace; else append
+      if(document.getElementById(windowId)) {
+        document.getElementById(windowId).outerHTML = windowHtml;
+      } else {
+        document.getElementById('windowsContainer').insertAdjacentHTML('beforeend', windowHtml);
+      }
+    }
+    function setWindowVal(windowId, key, value) {
+      if(["outerFrameProfile","innerFrameProfile","clampingLockProfile"].includes(key)) value = parseInt(value);
+      else if(key=="width"||key=="height") value = parseFloat(value)||4;
+      windows[windowId][key] = value;
+      renderWindow(windowId); // needed to update selects
+      updateWindow(windowId);
+    }
+    function switchUnit(windowId, unit) {
+      windows[windowId].unit = unit;
+      renderWindow(windowId); updateWindow(windowId);
+    }
+    function setTracks(windowId, tracks) {
+      windows[windowId].tracks = tracks;
+      renderWindow(windowId); updateWindow(windowId);
+    }
+    function setGlassType(windowId, glassType) {
+      windows[windowId].glassType = glassType;
+      renderWindow(windowId); updateWindow(windowId);
+    }
+    function removeWindow(windowId) {
+      document.getElementById(windowId).remove();
+      delete windows[windowId];
+      updateTotalSummary();
+    }
+    function updateWindow(windowId) {
+      const windowElement = document.getElementById(windowId);
+      if(!windowElement) return;
+      const w = windows[windowId];
+      const widthFt = convertToFeet(w.width, w.unit);
+      const heightFt = convertToFeet(w.height, w.unit);
+      document.getElementById(`${windowId}_width_conversion`).textContent =
+        w.unit === 'inches' ? `= ${widthFt.toFixed(2)} ft` : '';
+      document.getElementById(`${windowId}_height_conversion`).textContent =
+        w.unit === 'inches' ? `= ${heightFt.toFixed(2)} ft` : '';
+      const winCost = calculateWindowCost(windowId, widthFt, heightFt, w.tracks, w.glassType);
+      // Detailed breakdown
+      document.getElementById(`${windowId}_summary`).innerHTML = `
+        <div class="summary-item"><span>Area:</span><span>${winCost.area.toFixed(2)} ft²</span></div>
+        <div class="summary-item"><span>Outer Frame [${profiles.outerFrame[w.outerFrameProfile]?.type||''}]:</span><span>${winCost.outerWeight.toFixed(2)} kg (₹${winCost.costs.outerFrame.toFixed(2)})</span></div>
+        <div class="summary-item"><span>Inner Frame [${profiles.innerFrame[w.innerFrameProfile]?.type||''}]:</span><span>${winCost.innerWeight.toFixed(2)} kg (₹${winCost.costs.innerFrame.toFixed(2)})</span></div>
+        <div class="summary-item"><span>Clamping Lock [${profiles.clampingLock[w.clampingLockProfile]?.type||''}]:</span><span>${winCost.clampingWeight.toFixed(2)} kg (₹${winCost.costs.clampingLock.toFixed(2)})</span></div>
+        <div class="summary-item"><span>Powder Coating:</span><span>₹${winCost.costs.powderCoating.toFixed(2)}</span></div>
+        <div class="summary-item"><span>Glass:</span><span>₹${winCost.costs.glass.toFixed(2)}</span></div>
+        <div class="summary-item"><span>Labor:</span><span>₹${winCost.costs.labor.toFixed(2)}</span></div>
+        <div class="summary-item"><span>Clamps:</span><span>Outer: ₹${winCost.costs.outerClamps.toFixed(2)}, Inner: ₹${winCost.costs.innerClamps.toFixed(2)}</span></div>
+        <div class="summary-item"><span>Rubber:</span><span>₹${winCost.costs.rubber.toFixed(2)}</span></div>
+        <div class="summary-item"><span>Lock:</span><span>₹${winCost.costs.lock.toFixed(2)}</span></div>
+        <div class="summary-item"><span>Bearings:</span><span>₹${winCost.costs.bearings.toFixed(2)}</span></div>
+        <div class="summary-item"><span>Wool File:</span><span>₹${winCost.costs.woolFile.toFixed(2)}</span></div>
+        <div class="summary-item"><span>Other Charges:</span><span>₹${winCost.costs.otherCharges.toFixed(2)}</span></div>
+        <div class="summary-item" style="border-top:1px solid #fff7;padding-top:5px;margin-top:6px;">
+          <span><b>Total:</b></span><span class="window-cost"><b>₹${winCost.totalCost.toFixed(2)}</b></span>
+        </div>
+      `;
+      updateTotalSummary();
+    }
+    function updateAllWindows() {
+      Object.keys(windows).forEach(windowId => renderWindow(windowId));
+      Object.keys(windows).forEach(windowId => updateWindow(windowId));
+      updateTotalSummary();
+    }
+    function calculateWindowCost(windowId, width, height, tracks, glassType) {
+      // Get profiles for this window
+      const w = windows[windowId];
+      const outerProfile = profiles.outerFrame[w.outerFrameProfile] || profiles.outerFrame[0];
+      const innerProfile = profiles.innerFrame[w.innerFrameProfile] || profiles.innerFrame[0];
+      const clampProfile = profiles.clampingLock[w.clampingLockProfile] || profiles.clampingLock[0];
+      const area = width * height;
+      const powderCoatingRate = parseFloat(document.getElementById('powderCoatingRate').value) || 60;
+      const laborRate = parseFloat(document.getElementById('laborRate').value) || 50;
+      const clampPrice = parseFloat(document.getElementById('clampPrice').value) || 20;
+      const clearGlassRate = parseFloat(document.getElementById('clearGlassRate').value) || 45;
+      const reflectiveGlassRate = parseFloat(document.getElementById('reflectiveGlassRate').value) || 75;
+      const rubberRate = parseFloat(document.getElementById('rubberRate').value) || 8;
+      const lockPrice = parseFloat(document.getElementById('lockPrice').value) || 200;
+      const bearingPrice = parseFloat(document.getElementById('bearingPrice').value) || 45;
+      const woolFileRate = parseFloat(document.getElementById('woolFileRate').value) || 2;
+      const otherChargesRate = parseFloat(document.getElementById('otherChargesRate').value) || 5;
+
+      // Perimeter & Weights
+      const outerPerimeter = 2 * (width + height);
+      const outerWeight = outerPerimeter * outerProfile.weightPerFt;
+      const innerWeight = (tracks * 3 * height) * innerProfile.weightPerFt;
+      const clampingWeight = (height * 2) * clampProfile.weightPerFt;
+      const totalWeight = outerWeight + innerWeight + clampingWeight;
+      // Costs
+      const costs = {
+        outerFrame: outerWeight * outerProfile.ratePerKg,
+        innerFrame: innerWeight * innerProfile.ratePerKg,
+        clampingLock: clampingWeight * clampProfile.ratePerKg,
+        powderCoating: totalWeight * powderCoatingRate,
+        glass: area * (glassType === 'clear' ? clearGlassRate : reflectiveGlassRate),
+        labor: area * laborRate,
+        outerClamps: 4 * clampPrice,
+        innerClamps: tracks * 4 * 2 * clampPrice,
+        rubber: (tracks * 3 * height) * rubberRate,
+        lock: lockPrice,
+        bearings: tracks * 2 * bearingPrice,
+        woolFile: (outerPerimeter + (2 * width) + (2 * height) + (tracks * 2 * height)) * woolFileRate,
+        otherCharges: area * otherChargesRate
+      };
+      const totalCost = Object.values(costs).reduce((sum, cost) => sum + cost, 0);
+      return { area, outerWeight, innerWeight, clampingWeight, totalWeight, costs, totalCost };
+    }
+    function updateTotalSummary() {
+      let totalWindows = 0, totalArea = 0, outerFrameWeight = 0, innerFrameWeight = 0, totalWeight = 0, grandTotal = 0;
+      const aggregatedCosts = {};
+      Object.keys(windows).forEach(windowId => {
+        const w = windows[windowId];
+        const widthFt = convertToFeet(w.width, w.unit);
+        const heightFt = convertToFeet(w.height, w.unit);
+        const calculated = calculateWindowCost(windowId, widthFt, heightFt, w.tracks, w.glassType);
+        totalWindows++;
+        totalArea += calculated.area;
+        outerFrameWeight += calculated.outerWeight;
+        innerFrameWeight += calculated.innerWeight;
+        totalWeight += calculated.totalWeight;
+        grandTotal += calculated.totalCost;
+        Object.keys(calculated.costs).forEach(costType => {
+          if (!aggregatedCosts[costType]) aggregatedCosts[costType] = 0;
+          aggregatedCosts[costType] += calculated.costs[costType];
+        });
+      });
+      document.getElementById('totalWindows').textContent = totalWindows;
+      document.getElementById('totalArea').textContent = `${totalArea.toFixed(2)} ft²`;
+      document.getElementById('outerFrameWeight').textContent = `${outerFrameWeight.toFixed(2)} kg`;
+      document.getElementById('innerFrameWeight').textContent = `${innerFrameWeight.toFixed(2)} kg`;
+      document.getElementById('totalWeight').textContent = `${totalWeight.toFixed(2)} kg`;
+      document.getElementById('avgCostPerSqFt').textContent = totalArea > 0 ? `₹${(grandTotal / totalArea).toFixed(2)}` : '₹0.00';
+      const breakdownContainer = document.getElementById('totalCostBreakdown');
+      breakdownContainer.innerHTML = '';
+      Object.keys(aggregatedCosts).forEach(costType => {
+        const label = costType.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        breakdownContainer.innerHTML += `
+          <div class="cost-item">
+            <span class="cost-label">${label}</span>
+            <span class="cost-value">₹${aggregatedCosts[costType].toFixed(2)}</span>
+          </div>
+        `;
+      });
+      breakdownContainer.innerHTML += `
+        <div class="cost-item">
+          <span class="cost-label">Grand Total</span>
+          <span class="cost-value">₹${grandTotal.toFixed(2)}</span>
+        </div>
+      `;
+      document.getElementById('grandTotal').textContent = `₹${grandTotal.toFixed(2)}`;
+      document.getElementById('avgCostPerWindow').textContent = totalWindows > 0 ? `₹${(grandTotal / totalWindows).toFixed(2)}` : '₹0.00';
+    }
+    document.querySelectorAll('.rates-grid input').forEach(input => {
+      input.addEventListener('input', () => updateAllWindows());
+    });
+    window.onload = function () {
+      renderProfiles();
+      addWindow();
+    };
+    // ------------ END WINDOW LOGIC -----------
+  </script>
+</body>
+</html>
